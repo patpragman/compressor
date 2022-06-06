@@ -19,15 +19,10 @@ parser.add_argument("-k", type=float,
 parser.add_argument("-t",
                     type=str,
                     help="file suffix (for example .png)",
-                    default=".png")
+                    default=".jpeg")
 
-if __name__ == "__main__":
-    args = parser.parse_args()
-
-
-
+def compress(img) -> np.array:
     # load the image
-    img = matplotlib.image.imread(args.path)
 
     m, n, l = img.shape
     # cols to remove is calculated as a percentage from arg parse k, then make it an integer
@@ -49,5 +44,15 @@ if __name__ == "__main__":
         I = U[:, :cols_to_use] @ np.diag(s[:cols_to_use]) @ V[:cols_to_use, :] / 256
         I = np.clip(I, 0, 1)
         out[0:, 0:, layer] = I
+
+    return out
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+
+
+    img = matplotlib.image.imread(args.path)
+    out = compress(img)
+
 
     matplotlib.image.imsave(f'{args.path.split(".")[0]}_reduced_{args.k}_{args.t}', out)
