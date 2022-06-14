@@ -6,6 +6,7 @@ This script uses the SVD (Single Value Decomposition) to compress image files
 import matplotlib.image
 import numpy as np
 import argparse
+from svht import svht
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--path", type=str,
@@ -16,17 +17,31 @@ parser.add_argument("-k", type=float,
                     help='percent of rows to eliminate - express as a float between 0 and 1',
                     default=0)
 
+parser.add_argument('-o',
+                    help='optimal tag',
+                    action='store_true',
+                    default=True)
+
 parser.add_argument("-t",
                     type=str,
                     help="file suffix (for example .png)",
                     default=".jpeg")
 
-def compress(img) -> np.array:
+if __name__ == "__main__":
+    args = parser.parse_args()
+
+
+
     # load the image
+    img = matplotlib.image.imread(args.path)
 
     m, n, l = img.shape
-    # cols to remove is calculated as a percentage from arg parse k, then make it an integer
-    cols_to_use = n - int((n * args.k)//1)
+
+    if args.o:
+        # cols to remove is calculated as a percentage from arg parse k, then make it an integer
+        cols_to_use = n - round(svht(img[0]))
+    else:
+        cols_to_use = n - int((n * args.k)//1)
 
     if cols_to_use > n:
         raise Exception('you can\'t delete more than 100% of your columns')
@@ -45,14 +60,7 @@ def compress(img) -> np.array:
         I = np.clip(I, 0, 1)
         out[0:, 0:, layer] = I
 
-    return out
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-
-
-    img = matplotlib.image.imread(args.path)
-    out = compress(img)
-
-
-    matplotlib.image.imsave(f'{args.path.split(".")[0]}_reduced_{args.k}_{args.t}', out)
+    if not args.o:
+        matplotlib.image.imsave(f'{args.path.split(".")[0]}_reduced_{args.k}_{args.t}', out)
+    else:
+        matplotlib.image.imsave(f'{args.path.split(".")[0]}_reduced_optimal_{args.t}', out)
