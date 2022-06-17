@@ -20,7 +20,7 @@ parser.add_argument("-k", type=float,
 parser.add_argument('-o',
                     help='optimal tag',
                     action='store_true',
-                    default=True)
+                    default=False)
 
 parser.add_argument("-t",
                     type=str,
