@@ -2,10 +2,10 @@
 This script uses the SVD (Single Value Decomposition) to compress image files
 
 """
-
+import argparse
 import matplotlib.image
 import numpy as np
-import argparse
+from os import stat
 from svht import svht
 
 parser = argparse.ArgumentParser()
@@ -30,8 +30,6 @@ parser.add_argument("-t",
 if __name__ == "__main__":
     args = parser.parse_args()
 
-
-
     # load the image
     img = matplotlib.image.imread(args.path)
 
@@ -43,8 +41,11 @@ if __name__ == "__main__":
     else:
         cols_to_use = n - int((n * args.k)//1)
 
+
     if cols_to_use > n:
         raise Exception('you can\'t delete more than 100% of your columns')
+
+    print(f"Using {cols_to_use} of {n} columns...")
 
     # this will be our output matrix, it's empty for now
     out = np.zeros(img.shape)
@@ -60,7 +61,12 @@ if __name__ == "__main__":
         I = np.clip(I, 0, 1)
         out[0:, 0:, layer] = I
 
-    if not args.o:
-        matplotlib.image.imsave(f'{args.path.split(".")[0]}_reduced_{args.k}_{args.t}', out)
-    else:
-        matplotlib.image.imsave(f'{args.path.split(".")[0]}_reduced_optimal_{args.t}', out)
+    save_path = f'{args.path.split(".")[0]}_reduced_{args.k if not args.o else "optimal"}_{args.t}'
+    matplotlib.image.imsave(save_path, out)
+
+    # print some stats to the console
+    original_file_size = stat(args.path).st_size
+    new_file_size = stat(save_path).st_size
+    reduction = 1 - (new_file_size / original_file_size)
+
+    print(f"File size reduced by {round(100 * reduction, 2)}%.")
